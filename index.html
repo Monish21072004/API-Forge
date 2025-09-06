@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Forge - AI Code Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Authentic Glitch Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Swagger UI Libraries -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* =============================================== */
+        /* VIBRANT "SUNSET" THEME & ENHANCED ANIMATIONS    */
+        /* =============================================== */
+        :root {
+            --text-primary: #ffffff;
+            --text-secondary: #e5e7eb;
+            --panel-bg: rgba(255, 255, 255, 0.1);
+            --panel-border: rgba(255, 255, 255, 0.25);
+            --accent-color: #2dd4bf; /* Teal */
+            --accent-color-dark: #14b8a6;
+            --secondary-accent: #f472b6; /* Pink */
+            --glitch-red: #ff003c;
+            --glitch-cyan: #00ffc8;
+            --glitch-yellow: #fff000;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(145deg, #5b21b6 0%, #d946ef 50%, #f59e0b 100%);
+            color: var(--text-primary);
+        }
+
+        /* --- START: REALISTIC GLITCH FONT STYLE (GSAP) --- */
+        .glitch-title-container {
+            position: relative;
+        }
+
+        .glitch-title {
+            font-family: 'Teko', sans-serif;
+            font-size: 8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            position: relative; /* Stacking context for clones */
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            /* Applying a subtle gradient to the main text */
+            background: linear-gradient(90deg, #f0e6ff, #d9c2ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* These are the clones that will be animated by GSAP */
+        .glitch-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: #fff; /* Fallback */
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glitch-layer--red {
+            text-shadow: -2px 0 var(--glitch-red);
+            background: linear-gradient(90deg, var(--glitch-red), #ff5a84);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .glitch-layer--cyan {
+            text-shadow: 2px 0 var(--glitch-cyan);
+            background: linear-gradient(90deg, var(--glitch-cyan), #78ffee);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        /* --- END: REALISTIC GLITCH FONT STYLE (GSAP) --- */
+
+
+        /* Interactive Particle Network Background */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.7;
+        }
+
+        /* Frosted Glass Panel with 3D Tilt Effect */
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s ease-out, box-shadow 0.2s ease;
+            transform-style: preserve-3d;
+        }
+        .glass-panel:hover {
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+        
+        .tab-btn {
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+        .tab-btn.active {
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--secondary-accent);
+            background-color: rgba(244, 114, 182, 0.15);
+        }
+        
+        .btn-primary {
+            background: var(--accent-color);
+            color: #111827;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(45, 212, 191, 0.3);
+        }
+        .btn-primary:hover {
+            background: var(--accent-color-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(45, 212, 191, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--panel-border);
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        /* Input fields */
+        input[type="url"], input[type="text"], textarea {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+        }
+        input[type="url"]::placeholder, input[type="text"]::placeholder, textarea::placeholder {
+            color: rgba(229, 231, 235, 0.6);
+        }
+        input[type="url"]:focus, input[type="text"]:focus, textarea:focus {
+            ring-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        /* Swagger UI & Mock Viewer Theme Tweaks */
+        .swagger-ui .topbar { display: none; }
+        #swagger-ui { background: rgba(0,0,0,0.2); border-radius: 0.5rem; }
+        .swagger-ui { font-family: 'Inter', sans-serif; }
+        .swagger-ui .opblock-tag, .swagger-ui .info .title, .swagger-ui .info { color: var(--text-primary); }
+        .swagger-ui .opblock .opblock-summary-description { color: var(--text-secondary); }
+        .swagger-ui .opblock.opblock-post, .swagger-ui .opblock.opblock-get { background: rgba(0,0,0,0.2); border-color: var(--panel-border); }
+        .swagger-ui .opblock-body, .swagger-ui .parameters-col_description, .swagger-ui .response-col_description { color: var(--text-secondary); }
+        .swagger-ui .btn.authorize { background-color: var(--secondary-accent); border-color: var(--secondary-accent); }
+        .swagger-ui .btn.authorize:hover { background-color: #ec4899; border-color: #ec4899; }
+        
+        .swagger-ui .dialog-ux .modal-ux {
+            background: rgba(29, 7, 53, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--panel-border);
+            border-radius: 1rem;
+        }
+        .swagger-ui .dialog-ux .modal-ux-header { background: transparent; border-bottom: 1px solid var(--panel-border); }
+        .swagger-ui .dialog-ux .modal-ux-header h3 { color: var(--text-primary); }
+        .swagger-ui .dialog-ux .modal-ux-content { background: transparent; }
+        .swagger-ui .auth-container .auth-wrapper { background: transparent; }
+        .swagger-ui .dialog-ux .modal-ux-content p, .swagger-ui .dialog-ux .modal-ux-content h4 { color: var(--text-secondary); }
+        .swagger-ui .dialog-ux .modal-ux-content .btn { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--panel-border); color: var(--text-primary); }
+        .swagger-ui .dialog-ux .modal-ux-content .btn.btn-primary { background: var(--secondary-accent); border-color: var(--secondary-accent); color: var(--text-primary); }
+
+        /* Censorship styles */
+        .censored-content {
+            filter: blur(8px);
+            pointer-events: none;
+            user-select: none;
+        }
+        .otp-gate-container {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Entrance Animation */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="container mx-auto p-4 sm:p-8 h-screen flex flex-col relative z-10">
+        <header class="text-center mb-4 md:mb-8 flex-shrink-0 flex items-center justify-between fade-in-up" style="animation-delay: 0.1s;">
+            <div></div> <!-- Spacer -->
+            <div class="flex flex-col items-center">
+                <h1 id="main-title" class="glitch-title uppercase">API Forge</h1>
+                <p class="text-md text-gray-200 mt-2">Generate API Specifications & Documentation from Code</p>
+            </div>
+            <button id="commandBtn" class="bg-white/10 p-2 rounded-lg border border-white/20 hover:bg-white/20 transition-colors text-gray-200" title="Open Command Menu (Ctrl+K)">
+                <i class="ph-light ph-command text-xl"></i>
+            </button>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow min-h-0">
+            <!-- Left Panel -->
+            <div class="lg:col-span-1 h-full flex flex-col min-h-0 fade-in-up" style="animation-delay: 0.2s;">
+                <div class="glass-panel rounded-2xl p-6 h-full flex flex-col" data-tilt>
+                    <h2 class="text-xl font-semibold mb-4 text-white flex-shrink-0">Repository Loader</h2>
+                    <div class="flex gap-2 mb-4 flex-shrink-0">
+                        <input type="url" id="githubUrlInput" class="w-full p-2 rounded-lg text-sm focus:ring-2 focus:outline-none placeholder-gray-300/80" placeholder="https://github.com/user/repo">
+                        <button id="fetchUrlBtn" class="font-bold py-2 px-4 rounded-lg btn-primary">Fetch</button>
+                    </div>
+                    <div id="fileListContainer" class="flex-grow mt-2 border border-white/20 rounded-lg overflow-y-auto p-2 min-h-0 bg-black/10">
+                        <div class="text-center text-gray-300 text-sm py-8">Fetch a repository to browse files</div>
+                    </div>
+                    <div class="mt-4 flex flex-col gap-3 flex-shrink-0">
+                        <button id="summarizeRepoBtn" class="w-full font-bold py-3 px-4 rounded-lg btn-secondary hidden flex items-center justify-center gap-2">
+                             <i class="ph-light ph-file-text text-lg"></i>
+                            Summarize Repository
+                        </button>
+                        <button id="generateRepoBtn" class="w-full font-bold py-3 px-4 rounded-lg btn-secondary hidden">
+                            Generate for Whole Repository
+                        </button>
+                        <button id="generateBtn" class="w-full font-bold py-3 px-4 rounded-lg btn-secondary flex items-center justify-center gap-2">
+                            <i class="ph-light ph-magic-wand text-lg"></i>
+                            Generate Specification
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="lg:col-span-2 h-full flex flex-col min-h-0 fade-in-up" style="animation-delay: 0.3s;">
+                <div class="glass-panel rounded-2xl h-full flex flex-col" data-tilt>
+                    <div class="p-4 border-b border-white/20 flex items-center justify-between flex-shrink-0">
+                        <div class="flex gap-4">
+                            <button id="tab-source" class="tab-btn active px-3 py-2 text-sm font-medium rounded-t-lg">Source Code</button>
+                            <button id="tab-spec" class="tab-btn px-3 py-2 text-sm font-medium rounded-t-lg">Generated Specification</button>
+                            <button id="tab-docs" class="tab-btn px-3 py-2 text-sm font-medium rounded-t-lg">API Documentation</button>
+                            <button id="tab-mock" class="tab-btn px-3 py-2 text-sm font-medium rounded-t-lg">Interactive Playground</button>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button id="getOtpBtn" class="hidden bg-pink-500/20 text-pink-300 text-xs font-semibold px-3 py-1 rounded-full hover:bg-pink-500/30 transition-colors">Get OTP</button>
+                            <div id="detectedLanguage" class="text-right text-sm">
+                                <span class="font-semibold text-gray-300">Detected:</span> <span id="lang-name" class="text-white">None</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-grow relative min-h-0">
+                        <div id="panel-source" class="absolute inset-0 p-4">
+                            <textarea id="codeInput" class="w-full h-full p-4 rounded-lg font-mono text-sm focus:ring-2 resize-none placeholder-gray-300/80"></textarea>
+                        </div>
+                        <div id="panel-spec" class="absolute inset-0 p-4 hidden">
+                             <div class="relative w-full h-full">
+                                <button id="copyBtn" class="absolute top-2 right-2 bg-black/20 text-gray-200 hover:bg-black/30 font-semibold py-1 px-3 rounded-md text-xs transition z-10">Copy</button>
+                                <pre id="output" class="w-full h-full p-4 bg-black/20 border border-white/20 rounded-lg font-mono text-sm overflow-auto"></pre>
+                            </div>
+                        </div>
+                        <div id="panel-docs" class="absolute inset-0 p-4 hidden">
+                            <div id="docs-content-wrapper" class="w-full h-full">
+                                <div id="swagger-ui" class="w-full h-full overflow-auto"></div>
+                            </div>
+                            <div id="docs-otp-gate" class="otp-gate-container hidden">
+                                <div class="glass-panel p-8 rounded-xl text-center">
+                                    <i class="ph-light ph-lock text-5xl text-pink-400 mb-4"></i>
+                                    <h3 class="text-2xl font-bold mb-2">Authentication Required</h3>
+                                    <p class="text-gray-300 mb-4">Click "Get OTP" and enter it below to view.</p>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="docs-otp-input" placeholder="Enter 6-digit OTP" class="w-full p-2 rounded-lg text-sm text-center focus:ring-2 focus:outline-none">
+                                        <button id="docs-otp-unlock" class="font-bold py-2 px-4 rounded-lg btn-primary">Unlock</button>
+                                    </div>
+                                    <p id="docs-otp-error" class="text-red-400 text-sm mt-2 h-4"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="panel-mock" class="absolute inset-0 p-6 hidden">
+                            <div id="mock-content-wrapper" class="w-full h-full">
+                                <div class="w-full h-full grid grid-rows-[auto_1fr] gap-4 overflow-auto">
+                                    <div class="overflow-y-auto">
+                                        <h1 class="text-2xl font-bold mb-4">Interactive Playground</h1>
+                                        <div class="mb-4 p-4 bg-black/20 rounded-lg">
+                                            <h2 class="text-lg font-semibold mb-2">Set Authorization Token</h2>
+                                            <div class="flex gap-2">
+                                                <input type="text" id="tokenInput" placeholder="Enter OTP Token" class="w-full p-2 rounded-lg text-sm focus:ring-2 focus:outline-none">
+                                                <button id="setTokenBtn" class="font-bold py-2 px-4 rounded-lg btn-primary">Set</button>
+                                            </div>
+                                            <p id="tokenStatus" class="mt-2 text-sm h-4"></p>
+                                        </div>
+                                        <div>
+                                            <h2 class="text-lg font-semibold mb-2">Click an Endpoint to Test</h2>
+                                            <div id="endpoints-list"></div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-black/20 rounded-lg p-4 flex flex-col">
+                                        <h2 class="text-lg font-semibold mb-2 flex-shrink-0">Mock Response</h2>
+                                        <pre id="mock-response" class="w-full h-full overflow-auto text-sm whitespace-pre-wrap flex-grow"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                             <div id="mock-otp-gate" class="otp-gate-container hidden">
+                                <div class="glass-panel p-8 rounded-xl text-center">
+                                    <i class="ph-light ph-lock text-5xl text-pink-400 mb-4"></i>
+                                    <h3 class="text-2xl font-bold mb-2">Authentication Required</h3>
+                                    <p class="text-gray-300 mb-4">Click "Get OTP" and enter it below to view.</p>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="mock-otp-input" placeholder="Enter 6-digit OTP" class="w-full p-2 rounded-lg text-sm text-center focus:ring-2 focus:outline-none">
+                                        <button id="mock-otp-unlock" class="font-bold py-2 px-4 rounded-lg btn-primary">Unlock</button>
+                                    </div>
+                                    <p id="mock-otp-error" class="text-red-400 text-sm mt-2 h-4"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Summary Modal -->
+    <div id="summary-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="glass-panel rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div class="p-4 border-b border-white/20 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-white">Repository Summary</h2>
+                <button id="close-modal-btn" class="text-gray-300 hover:text-white">
+                    <i class="ph-light ph-x text-2xl"></i>
+                </button>
+            </div>
+            <div id="summary-content" class="p-6 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Command Palette Modal -->
+    <div id="command-palette" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-start pt-20 hidden z-50">
+        <div class="glass-panel rounded-xl w-full max-w-lg">
+            <input type="text" id="command-input" class="w-full p-4 bg-transparent text-lg text-white focus:outline-none placeholder-gray-300" placeholder="Type a command or search...">
+            <div id="command-list" class="border-t border-white/20 max-h-80 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script>
+        const API_ENDPOINT = "http://127.0.0.1:5000";
+
+        window.onload = () => {
+            // --- GSAP Glitch Effect ---
+            const originalTitle = document.getElementById('main-title');
+            
+            const container = document.createElement('div');
+            container.classList.add('glitch-title-container');
+            originalTitle.parentNode.insertBefore(container, originalTitle);
+            container.appendChild(originalTitle);
+
+            const cloneRed = originalTitle.cloneNode(true);
+            cloneRed.classList.add('glitch-layer', 'glitch-layer--red');
+            cloneRed.setAttribute('aria-hidden', 'true');
+            container.appendChild(cloneRed);
+            
+            const cloneCyan = originalTitle.cloneNode(true);
+            cloneCyan.classList.add('glitch-layer', 'glitch-layer--cyan');
+            cloneCyan.setAttribute('aria-hidden', 'true');
+            container.appendChild(cloneCyan);
+
+            const masterTl = gsap.timeline({ repeat: -1 });
+
+            const createGlitchBurst = () => {
+                const tl = gsap.timeline();
+                
+                tl.to([cloneRed, cloneCyan], {
+                    duration: 0.05,
+                    x: () => gsap.utils.random(-20, 20, 1) + 'px',
+                    y: () => gsap.utils.random(-5, 5, 1) + 'px',
+                    skewX: () => gsap.utils.random(-8, 8, 1) + 'deg',
+                    ease: 'steps(1)',
+                    clipPath: () => {
+                        const y = gsap.utils.random(0, 75);
+                        const height = gsap.utils.random(15, 30);
+                        return `inset(${y}% 0 ${100 - y - height}% 0)`;
+                    }
+                })
+                .to(originalTitle, {
+                    duration: 0.05,
+                    x: () => gsap.utils.random(-2, 2, 1) + 'px',
+                    ease: 'steps(1)'
+                }, "<")
+                .to([originalTitle, cloneRed, cloneCyan], {
+                    duration: 0.05,
+                    x: 0,
+                    y: 0,
+                    skewX: 0,
+                    ease: 'steps(1)',
+                    clipPath: 'inset(0% 0 0% 0)'
+                });
+
+                return tl;
+            };
+
+            // More frequent and overlapping bursts
+            masterTl.add(createGlitchBurst(), `+=${gsap.utils.random(0.1, 0.4)}`);
+            masterTl.add(createGlitchBurst(), `+=${gsap.utils.random(0.3, 0.8)}`);
+            masterTl.add(createGlitchBurst(), `+=0.05`); // Quick succession
+            masterTl.add(createGlitchBurst(), `+=0.05`); // Quick succession
+            masterTl.add(createGlitchBurst(), `+=${gsap.utils.random(0.5, 1.5)}`);
+
+
+            const ui = {
+                codeInput: document.getElementById('codeInput'),
+                output: document.getElementById('output'),
+                langName: document.getElementById('lang-name'),
+                generateBtn: document.getElementById('generateBtn'),
+                generateRepoBtn: document.getElementById('generateRepoBtn'),
+                githubUrlInput: document.getElementById('githubUrlInput'),
+                fetchUrlBtn: document.getElementById('fetchUrlBtn'),
+                fileListContainer: document.getElementById('fileListContainer'),
+                tabSource: document.getElementById('tab-source'),
+                tabSpec: document.getElementById('tab-spec'),
+                panelSource: document.getElementById('panel-source'),
+                panelSpec: document.getElementById('panel-spec'),
+                copyBtn: document.getElementById('copyBtn'),
+                commandBtn: document.getElementById('commandBtn'),
+                commandPalette: document.getElementById('command-palette'),
+                commandInput: document.getElementById('command-input'),
+                commandList: document.getElementById('command-list'),
+                getOtpBtn: document.getElementById('getOtpBtn'),
+                summarizeRepoBtn: document.getElementById('summarizeRepoBtn'),
+                summaryModal: document.getElementById('summary-modal'),
+                summaryContent: document.getElementById('summary-content'),
+                closeModalBtn: document.getElementById('close-modal-btn'),
+                tabDocs: document.getElementById('tab-docs'),
+                tabMock: document.getElementById('tab-mock'),
+                panelDocs: document.getElementById('panel-docs'),
+                panelMock: document.getElementById('panel-mock'),
+                tokenInput: document.getElementById('tokenInput'),
+                setTokenBtn: document.getElementById('setTokenBtn'),
+                tokenStatus: document.getElementById('tokenStatus'),
+                endpointsList: document.getElementById('endpoints-list'),
+                mockResponse: document.getElementById('mock-response'),
+                // OTP Gate elements
+                docsOtpGate: document.getElementById('docs-otp-gate'),
+                docsContentWrapper: document.getElementById('docs-content-wrapper'),
+                docsOtpInput: document.getElementById('docs-otp-input'),
+                docsOtpUnlock: document.getElementById('docs-otp-unlock'),
+                docsOtpError: document.getElementById('docs-otp-error'),
+                mockOtpGate: document.getElementById('mock-otp-gate'),
+                mockContentWrapper: document.getElementById('mock-content-wrapper'),
+                mockOtpInput: document.getElementById('mock-otp-input'),
+                mockOtpUnlock: document.getElementById('mock-otp-unlock'),
+                mockOtpError: document.getElementById('mock-otp-error'),
+            };
+
+            let currentRepoInfo = null;
+            let currentSpec = null;
+            let swaggerUI = null;
+            let mockAuthToken = null;
+            let isAuthenticated = false;
+
+            // --- Particle Network Animation ---
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = Math.random() * 0.2 - 0.1;
+                    this.vy = Math.random() * 0.2 - 0.1;
+                    this.radius = 1.5;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.fill();
+                }
+            }
+
+            const createParticles = () => {
+                particles = [];
+                const particleCount = Math.floor((canvas.width * canvas.height) / 20000);
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            };
+            createParticles();
+            window.addEventListener('resize', createParticles);
+
+            const animateParticles = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 150) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 - dist / 150})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animateParticles);
+            };
+            animateParticles();
+
+
+            // --- 3D Tilt Effect ---
+            document.querySelectorAll('[data-tilt]').forEach(el => {
+                el.addEventListener('mousemove', (e) => {
+                    const rect = el.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const { width, height } = rect;
+                    const rotateX = (y / height - 0.5) * -6;
+                    const rotateY = (x / width - 0.5) * 6;
+                    el.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                });
+                el.addEventListener('mouseleave', () => {
+                    el.style.transform = 'perspective(1500px) rotateX(0) rotateY(0) scale(1)';
+                });
+            });
+
+            // --- Command Palette Logic ---
+            const commands = [
+                { name: 'Fetch from GitHub URL', action: () => ui.fetchUrlBtn.click() },
+                { name: 'Summarize Repository', action: () => ui.summarizeRepoBtn.offsetParent && ui.summarizeRepoBtn.click() },
+                { name: 'Generate Specification', action: () => ui.generateBtn.click() },
+                { name: 'Generate for Whole Repository', action: () => ui.generateRepoBtn.offsetParent && ui.generateRepoBtn.click() },
+                { name: 'View Source Code', action: () => ui.tabSource.click() },
+                { name: 'View Generated Specification', action: () => ui.tabSpec.click() },
+                { name: 'View API Documentation', action: () => ui.tabDocs.click() },
+                { name: 'View Interactive Playground', action: () => ui.tabMock.click() },
+                { name: 'Get OTP', action: () => ui.getOtpBtn.offsetParent && ui.getOtpBtn.click() },
+            ];
+            const renderCommands = (filter = '') => {
+                ui.commandList.innerHTML = '';
+                commands
+                    .filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+                    .forEach(c => {
+                        const item = document.createElement('button');
+                        item.className = 'w-full text-left p-3 text-gray-200 hover:bg-white/10 transition-colors rounded-md';
+                        item.textContent = c.name;
+                        item.onclick = () => { c.action(); toggleCommandPalette(false); };
+                        ui.commandList.appendChild(item);
+                    });
+            };
+            const toggleCommandPalette = (show) => {
+                if (show) {
+                    ui.commandPalette.classList.remove('hidden');
+                    ui.commandInput.value = '';
+                    renderCommands();
+                    ui.commandInput.focus();
+                } else {
+                    ui.commandPalette.classList.add('hidden');
+                }
+            };
+            ui.commandBtn.addEventListener('click', () => toggleCommandPalette(true));
+            ui.commandInput.addEventListener('input', () => renderCommands(ui.commandInput.value));
+            ui.commandPalette.addEventListener('click', (e) => { if (e.target === ui.commandPalette) toggleCommandPalette(false); });
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleCommandPalette(!ui.commandPalette.offsetParent); }
+                if (e.key === 'Escape' && ui.commandPalette.offsetParent) { toggleCommandPalette(false); }
+            });
+
+            // --- Tab Functionality ---
+            const setupTabs = (tabs, panels) => {
+                tabs.forEach((tab, index) => {
+                    tab.addEventListener('click', () => {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        panels.forEach(p => p.classList.add('hidden'));
+                        tab.classList.add('active');
+                        panels[index].classList.remove('hidden');
+                    });
+                });
+            };
+            
+            setupTabs([ui.tabSource, ui.tabSpec, ui.tabDocs, ui.tabMock], [ui.panelSource, ui.panelSpec, ui.panelDocs, ui.panelMock]);
+
+            ui.tabDocs.addEventListener('click', () => {
+                if (currentSpec && !swaggerUI) {
+                    swaggerUI = SwaggerUIBundle({ spec: currentSpec, dom_id: '#swagger-ui' });
+                } else if (currentSpec) {
+                    swaggerUI.specActions.updateSpec(JSON.stringify(currentSpec));
+                }
+                updateAuthVisibility();
+            });
+
+            ui.tabMock.addEventListener('click', () => {
+                renderMockViewer();
+                updateAuthVisibility();
+            });
+
+            // --- Authentication & Censorship Logic ---
+            const updateAuthVisibility = () => {
+                if (currentSpec) {
+                    ui.getOtpBtn.classList.remove('hidden');
+                    if (isAuthenticated) {
+                        // Docs panel
+                        ui.docsContentWrapper.classList.remove('censored-content');
+                        ui.docsOtpGate.classList.add('hidden');
+                        // Mock panel
+                        ui.mockContentWrapper.classList.remove('censored-content');
+                        ui.mockOtpGate.classList.add('hidden');
+                    } else {
+                        // Docs panel
+                        ui.docsContentWrapper.classList.add('censored-content');
+                        ui.docsOtpGate.classList.remove('hidden');
+                        // Mock panel
+                        ui.mockContentWrapper.classList.add('censored-content');
+                        ui.mockOtpGate.classList.remove('hidden');
+                    }
+                } else {
+                    ui.getOtpBtn.classList.add('hidden');
+                }
+            };
+
+            const handleUnlockAttempt = async (otp, errorElement) => {
+                if (!otp) {
+                    errorElement.textContent = 'Please enter an OTP.';
+                    return;
+                }
+                errorElement.textContent = '';
+                try {
+                    const response = await fetch(`${API_ENDPOINT}/validate-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ otp: otp })
+                    });
+                    const data = await response.json();
+                    if (data.valid) {
+                        isAuthenticated = true;
+                        updateAuthVisibility();
+                        showPopup(false, 'Successfully authenticated!');
+                    } else {
+                        errorElement.textContent = 'Invalid or expired OTP.';
+                    }
+                } catch (e) {
+                    errorElement.textContent = 'Error validating OTP.';
+                }
+            };
+
+            ui.docsOtpUnlock.addEventListener('click', () => handleUnlockAttempt(ui.docsOtpInput.value, ui.docsOtpError));
+            ui.mockOtpUnlock.addEventListener('click', () => handleUnlockAttempt(ui.mockOtpInput.value, ui.mockOtpError));
+
+            ui.getOtpBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(`${API_ENDPOINT}/generate-otp`);
+                    if (!response.ok) throw new Error('Failed to get OTP');
+                    const data = await response.json();
+                    showPopup(false, `Your OTP is: ${data.otp}.`);
+                } catch (error) {
+                    showPopup(true, `Error: ${error.message}`);
+                }
+            });
+
+            // --- Summary Modal Logic ---
+            const toggleModal = (show) => {
+                ui.summaryModal.classList.toggle('hidden', !show);
+            };
+            ui.summarizeRepoBtn.addEventListener('click', async () => {
+                if (!currentRepoInfo) return;
+                toggleModal(true);
+                ui.summaryContent.innerHTML = '<p class="text-gray-300">Summarizing repository...</p>';
+                try {
+                    const response = await fetch(`${API_ENDPOINT}/summarize-repo`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(currentRepoInfo)
+                    });
+                    if (!response.ok) throw new Error((await response.json()).description);
+                    const result = await response.json();
+                    ui.summaryContent.innerHTML = `<pre class="whitespace-pre-wrap font-sans text-gray-200">${result.summary}</pre>`;
+                } catch (error) {
+                    ui.summaryContent.innerHTML = `<p class="text-red-400">${error.message}</p>`;
+                }
+            });
+            ui.closeModalBtn.addEventListener('click', () => toggleModal(false));
+            ui.summaryModal.addEventListener('click', (e) => {
+                if (e.target === ui.summaryModal) toggleModal(false);
+            });
+
+            // --- Interactive Playground Logic ---
+            const handleMockRequest = async (event) => {
+                const button = event.currentTarget;
+                const path = button.dataset.path.substring(1); // remove leading slash
+                const method = button.dataset.method;
+                
+                if (!mockAuthToken) {
+                    ui.mockResponse.textContent = 'Error: Authorization token not set. Please set the token above.';
+                    return;
+                }
+
+                ui.mockResponse.textContent = 'Loading...';
+
+                try {
+                    const response = await fetch(`${API_ENDPOINT}/mock/${path}`, {
+                        method: method.toUpperCase(),
+                        headers: { 'Authorization': `Bearer ${mockAuthToken}` }
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.description || `HTTP error! Status: ${response.status}`);
+                    }
+                    ui.mockResponse.textContent = JSON.stringify(data, null, 2);
+                } catch (error) {
+                    ui.mockResponse.textContent = `Error: ${error.message}`;
+                }
+            };
+            
+            const renderMockViewer = () => {
+                const list = ui.endpointsList;
+                if (currentSpec) {
+                    list.innerHTML = '';
+                    if (currentSpec.paths && Object.keys(currentSpec.paths).length > 0) {
+                        for (const path in currentSpec.paths) {
+                            for (const method in currentSpec.paths[path]) {
+                                const el = document.createElement('button');
+                                el.className = 'endpoint w-full text-left p-4 bg-black/20 rounded-md mb-2 cursor-pointer hover:bg-black/40 transition-colors';
+                                el.innerHTML = `<span class="inline-block bg-teal-500 text-white text-xs font-bold mr-3 px-2.5 py-1 rounded-full">${method.toUpperCase()}</span> <span class="font-mono font-bold">${path}</span>`;
+                                el.dataset.path = path;
+                                el.dataset.method = method;
+                                el.addEventListener('click', handleMockRequest);
+                                list.appendChild(el);
+                            }
+                        }
+                    } else {
+                        list.innerHTML = '<p class="text-gray-300">No API endpoints were found in the provided code.</p>';
+                    }
+                } else {
+                     list.innerHTML = '<p class="text-gray-300">Generate a specification first to see mock endpoints.</p>';
+                }
+            };
+
+            ui.setTokenBtn.addEventListener('click', () => {
+                const token = ui.tokenInput.value;
+                if (token) {
+                    mockAuthToken = token;
+                    ui.tokenStatus.textContent = 'Token has been set!';
+                    ui.tokenStatus.className = 'mt-2 text-sm text-green-300';
+                } else {
+                    ui.tokenStatus.textContent = 'Please enter a token.';
+                    ui.tokenStatus.className = 'mt-2 text-sm text-yellow-300';
+                }
+            });
+
+
+            // --- Core Application Logic ---
+            const showPopup = (isError, message) => {
+                const popup = document.createElement('div');
+                popup.className = `fixed bottom-5 right-5 p-4 rounded-lg text-white shadow-lg z-50 ${isError ? 'bg-red-500' : 'bg-pink-600'}`;
+                popup.textContent = message;
+                document.body.appendChild(popup);
+                setTimeout(() => {
+                    popup.style.opacity = '0';
+                    popup.style.transform = 'translateY(20px)';
+                    setTimeout(() => popup.remove(), 300);
+                }, 4000);
+                popup.style.transition = 'opacity 0.3s, transform 0.3s';
+            };
+            const handleGenerationSuccess = (result) => {
+                ui.langName.textContent = result.language ? (result.language.charAt(0).toUpperCase() + result.language.slice(1)) : 'Repository';
+                ui.output.textContent = result.specification;
+                currentSpec = jsyaml.load(result.specification);
+                swaggerUI = null;
+                mockAuthToken = null;
+                isAuthenticated = false;
+                ui.tokenInput.value = '';
+                ui.tokenStatus.textContent = '';
+                updateAuthVisibility();
+                renderMockViewer();
+                // Trigger a click on the docs tab to initialize it
+                ui.tabDocs.click();
+            };
+
+            ui.generateBtn.addEventListener('click', async () => {
+                const sourceCode = ui.codeInput.value;
+                if (!sourceCode.trim()) return;
+                ui.tabSpec.click();
+                try {
+                    const response = await fetch(`${API_ENDPOINT}/generate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: sourceCode }) });
+                    if (!response.ok) throw new Error((await response.json()).description);
+                    const result = await response.json();
+                    handleGenerationSuccess(result);
+                } catch (error) { showPopup(true, error.message); }
+            });
+            ui.fetchUrlBtn.addEventListener('click', async () => {
+                const url = ui.githubUrlInput.value;
+                if (!url) return;
+                ui.fileListContainer.innerHTML = '<div class="text-center text-gray-300 text-sm py-8">Fetching...</div>';
+                ui.generateRepoBtn.classList.add('hidden');
+                ui.summarizeRepoBtn.classList.add('hidden');
+                try {
+                    const response = await fetch(`${API_ENDPOINT}/fetch-github`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+                    if (!response.ok) throw new Error((await response.json()).description);
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        const match = url.match(/github\.com\/([^/]+)\/([^/.]+)/);
+                        if (match) {
+                            currentRepoInfo = { user: match[1], repo: match[2].replace('.git', ''), branch: 'main', path: '' };
+                            ui.generateRepoBtn.classList.remove('hidden');
+                            ui.summarizeRepoBtn.classList.remove('hidden');
+                        }
+                        ui.fileListContainer.innerHTML = '';
+                        data.sort((a, b) => (a.type === 'dir' ? -1 : 1)).forEach(file => {
+                            const btn = document.createElement('button');
+                            btn.className = 'w-full text-left p-2 text-sm text-gray-200 hover:bg-white/10 rounded-md flex items-center gap-2 transition-colors';
+                            btn.innerHTML = `<span>${file.type === 'dir' ? '📁' : '📄'}</span><span>${file.name}</span>`;
+                            btn.onclick = () => { ui.githubUrlInput.value = file.html_url; ui.fetchUrlBtn.click(); };
+                            ui.fileListContainer.appendChild(btn);
+                        });
+                        ui.codeInput.value = 'Select a file from the list.';
+                    } else {
+                        ui.codeInput.value = atob(data.content);
+                        currentRepoInfo = null;
+                    }
+                } catch (error) { showPopup(true, error.message); }
+            });
+            ui.generateRepoBtn.addEventListener('click', async () => {
+                if (!currentRepoInfo) return;
+                ui.tabSpec.click();
+                try {
+                    const response = await fetch(`${API_ENDPOINT}/generate-repo`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(currentRepoInfo) });
+                    if (!response.ok) throw new Error((await response.json()).description);
+                    const result = await response.json();
+                    handleGenerationSuccess(result);
+                } catch (error) { showPopup(true, error.message); }
+            });
+            
+            // Set initial state
+            ui.tabSource.click();
+            updateAuthVisibility();
+            renderMockViewer();
+        };
+    </script>
+</body>
+</html>
+
