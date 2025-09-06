@@ -70,7 +70,6 @@ Follow these instructions to get a local copy up and running.
    ```bash
    git clone <your-repository-url>
    cd <repository-folder>
-````
 
 2. **Create and activate a virtual environment:**
 
