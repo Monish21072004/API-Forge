@@ -1,6 +1,4 @@
-Here's your content formatted as a **Markdown (`.md`)** file:
 
-````markdown
 # API Forge  
 **Generate API Specifications & Documentation from Code Instantly**
 
