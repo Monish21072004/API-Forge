@@ -68,9 +68,7 @@ Follow these instructions to get a local copy up and running.
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repository-url>
-   cd <repository-folder>
-
+   git clone [<your-repository-url>](https://github.com/Monish21072004/API-Forge.git)
 2. **Create and activate a virtual environment:**
 
    **Windows:**
@@ -245,7 +243,3 @@ See the LICENSE file for details.
 
 API Forge simplifies API documentation by automatically converting source code into **OpenAPI 3.0 specs**, with **interactive Swagger UI**, **GitHub integration**, and a **modern, animated interface**.
 
-```
-
-This `.md` file is fully structured for a GitHub **README.md** with proper headings, code blocks, and formatting.
-```
